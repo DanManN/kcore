@@ -54,7 +54,10 @@ kcoreM: all $(DATA)/$(DATA).offsets
 .PHONY: kcoreM
 
 union: all $(DATA)/$(DATA).offsets $(DATA)/$(DATA)-t.offsets
-	java -cp "lib/*" it.unimi.dsi.webgraph.Transform union $(DATA)/$(DATA) $(DATA)/$(DATA)-t $(DATA)/$(DATA)-sym
+	mv $(DATA)/$(DATA).graph $(DATA)/$(DATA)-tt.graph
+	mv $(DATA)/$(DATA).offsets $(DATA)/$(DATA)-tt.offsets
+	mv $(DATA)/$(DATA).properties $(DATA)/$(DATA)-tt.properties
+	java -cp "lib/*" it.unimi.dsi.webgraph.Transform union $(DATA)/$(DATA)-tt $(DATA)/$(DATA)-t $(DATA)/$(DATA)
 
 .PHONY: union
 
@@ -70,8 +73,10 @@ sanitize:
 
 .PHONY: sanitize
 
+ifeq (,$(wildcard $(DATA)/$(DATA).properties))
 $(DATA)/$(DATA).graph: $(DATA)/$(DATA).txt
 	java -cp "lib/*" it.unimi.dsi.webgraph.BVGraph -1 -g ArcListASCIIGraph dummy $(DATA)/$(DATA) < $(DATA)/$(DATA).txt
+endif
 
 $(DATA)/$(DATA).offsets: $(DATA)/$(DATA).graph
 	java -cp "lib/*" it.unimi.dsi.webgraph.BVGraph -o -O -L $(DATA)/$(DATA)
