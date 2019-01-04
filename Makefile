@@ -1,4 +1,5 @@
 DATA := simplegraph
+TYPE := bvgraph
 CORE := 1
 RAM  := 4G
 SRC  := $(wildcard src/*.java)
@@ -19,12 +20,12 @@ kcoreStats: all #$(DATA)/$(DATA)-$(CORE)core.nodes
 .PHONY: kcoreStats
 
 kdecompBZ: all $(DATA)/$(DATA).offsets
-	java -Xms$(RAM) -Xmx$(RAM) -cp "bin:lib/*" KCoreDecompBZ $(DATA)/$(DATA)
+	java -Xms$(RAM) -Xmx$(RAM) -cp "bin:lib/*" KCoreDecompBZ $(DATA)/$(DATA) $(TYPE)
 
 .PHONY: kdecompBZ
 
 kdecompM: all $(DATA)/$(DATA).offsets
-	java -Xms$(RAM) -Xmx$(RAM) -cp "bin:lib/*" KCoreDecompM $(DATA)/$(DATA)
+	java -Xms$(RAM) -Xmx$(RAM) -cp "bin:lib/*" KCoreDecompM $(DATA)/$(DATA) $(TYPE)
 
 .PHONY: kdecompM
 
@@ -67,7 +68,7 @@ $(DATA)/$(DATA)-t.offsets: $(DATA)/$(DATA)-t.graph
 
 $(DATA)/$(DATA).txt:
 	7z x $(DATA)/$(DATA).txt.gz -o$(DATA)
-	mv $(DATA)/$(DATA).txt $(DATA)/$(DATA)_orig.txt
+	mv $(DATA)/`7z l $(DATA)/$(DATA).txt.gz | tail -n 3 | head -n 1 | tr -s ' ' | cut -d ' ' -f6` $(DATA)/$(DATA)_orig.txt
 	cat $(DATA)/$(DATA)_orig.txt | grep -v '#' | sort -nk 1 | uniq > $(DATA)/$(DATA).txt
 
 # $(DATA)/$(DATA)-$(CORE)core.nodes: $(DATA)/$(DATA).offsets kdecompBZ
