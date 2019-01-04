@@ -12,7 +12,7 @@ Makefile Parameters:
 
 - DATA = (the data set basename, default: simplegraph)
 - TYPE = (the output format for the core decompositions, either edgelist or bvgraph, default: bvgraph)
-- CORE = (the core number for the kcoreStats command, default: 1)
+- CORE = (the core number for the kcoreStats command or ALL, if 0 the stats of entire graph are printed, default: 0)
 - RAM  = (amount of ram to allocate to the jvm, default: 4G)
 
 Makefile Commands:

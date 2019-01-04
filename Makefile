@@ -1,6 +1,6 @@
 DATA := simplegraph
 TYPE := bvgraph
-CORE := 1
+CORE := 0
 RAM  := 4G
 SRC  := $(wildcard src/*.java)
 OUT  := bin
@@ -14,8 +14,22 @@ $(OUT)/%.class: src/%.java | $(OUT)
 $(OUT):
 	@mkdir $@
 
-kcoreStats: all #$(DATA)/$(DATA)-$(CORE)core.nodes
-	java -cp "bin:lib/*" KCoreStats $(DATA)/$(DATA)-$(CORE)core
+ifeq ($(CORE), ALL)
+kcoreStats: all
+	@echo -e "|V|\t|E|\tdmax\tkmax\tkavg"
+	@java -cp "bin:lib/*" KCoreStats $(DATA)/$(DATA) | grep -v $(DATA) | grep -v kmax
+	@for x in $$(ls -v $(DATA) | grep 'core.graph') ; do \
+		java -cp "bin:lib/*" KCoreStats $(DATA)/$${x%??????} | grep -v $(DATA) | grep -v kmax ;\
+	done
+else
+ifeq ($(CORE), 0)
+kcoreStats: all
+	@java -cp "bin:lib/*" KCoreStats $(DATA)/$(DATA)
+else
+kcoreStats: all
+	@java -cp "bin:lib/*" KCoreStats $(DATA)/$(DATA)-$(CORE)core
+endif
+endif
 
 .PHONY: kcoreStats
 
@@ -30,17 +44,16 @@ kdecompM: all $(DATA)/$(DATA).offsets
 .PHONY: kdecompM
 
 kcoreBZ: all $(DATA)/$(DATA).offsets
-	java -cp "bin:lib/*" KCoreWG_BZ $(DATA)/$(DATA)
+	@java -cp "bin:lib/*" KCoreWG_BZ $(DATA)/$(DATA)
 
 .PHONY: kcoreBZ
 
 kcoreM: all $(DATA)/$(DATA).offsets
-	java -cp "bin:lib/*" KCoreWG_M $(DATA)/$(DATA)
+	@java -cp "bin:lib/*" KCoreWG_M $(DATA)/$(DATA)
 
 .PHONY: kcoreM
 
 union: all $(DATA)/$(DATA).offsets $(DATA)/$(DATA)-t.offsets
-
 	java -cp "lib/*" it.unimi.dsi.webgraph.Transform union $(DATA)/$(DATA) $(DATA)/$(DATA)-t $(DATA)/$(DATA)-sym
 
 .PHONY: union
@@ -68,10 +81,8 @@ $(DATA)/$(DATA)-t.offsets: $(DATA)/$(DATA)-t.graph
 
 $(DATA)/$(DATA).txt:
 	7z x $(DATA)/$(DATA).txt.gz -o$(DATA)
-	mv $(DATA)/`7z l $(DATA)/$(DATA).txt.gz | tail -n 3 | head -n 1 | tr -s ' ' | cut -d ' ' -f6` $(DATA)/$(DATA)_orig.txt
+	mv $(DATA)/$$(7z l $(DATA)/$(DATA).txt.gz | tail -n 3 | head -n 1 | tr -s ' ' | cut -d ' ' -f6) $(DATA)/$(DATA)_orig.txt
 	cat $(DATA)/$(DATA)_orig.txt | grep -v '#' | sort -nk 1 | uniq > $(DATA)/$(DATA).txt
-
-# $(DATA)/$(DATA)-$(CORE)core.nodes: $(DATA)/$(DATA).offsets kdecompBZ
 
 clean-bin:
 	rm -rf bin/*
