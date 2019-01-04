@@ -228,7 +228,7 @@ public class KCoreDecompBZ {
 		String basename = args[0];
 		String gtype = "bvgraph";
 		if (args.length == 2)
-			gtype = "edgelist";
+			gtype = args[1];
 
 		System.out.println("Starting " + basename);
 		KCoreDecompBZ kc = new KCoreDecompBZ(basename);
