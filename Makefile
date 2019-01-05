@@ -63,13 +63,13 @@ union: all $(DATA)/$(DATA).offsets $(DATA)/$(DATA)-t.offsets
 
 eunion: $(DATA)/$(DATA).txt
 	mv $(DATA)/$(DATA).txt $(DATA)/$(DATA)-dir.txt
-	./sym.sh $(DATA)/$(DATA)-dir.txt | sort -nk 1 | uniq > $(DATA)/$(DATA).txt
+	cat $(DATA)/$(DATA)-dir.txt | awk '{print $$0"\n"$$2"\t"$$1}' | sort -nk 1 | uniq > $(DATA)/$(DATA).txt
 
 .PHONY: eunion
 
 sanitize:
 	mv $(DATA)/$(DATA).txt $(DATA)/$(DATA)_orig.txt
-	cat $(DATA)/$(DATA)_orig.txt | grep -v '#' | sort -nk 1 | uniq | tr -d '\r' | ./fsl.sh > $(DATA)/$(DATA).txt
+	cat $(DATA)/$(DATA)_orig.txt | grep -v '#' | sort -nk 1 | uniq | tr -d '\r' | awk '$$1 != $$2' > $(DATA)/$(DATA).txt
 
 .PHONY: sanitize
 
@@ -87,7 +87,7 @@ $(DATA)/$(DATA)-t.offsets: $(DATA)/$(DATA)-t.graph
 $(DATA)/$(DATA).txt:
 	7z x $(DATA)/$(DATA).txt.gz -o$(DATA)
 	mv $(DATA)/$$(7z l $(DATA)/$(DATA).txt.gz | tail -n 3 | head -n 1 | tr -s ' ' | cut -d ' ' -f6) $(DATA)/$(DATA)_orig.txt
-	cat $(DATA)/$(DATA)_orig.txt | grep -v '#' | sort -nk 1 | uniq | tr -d '\r' | ./fsl.sh > $(DATA)/$(DATA).txt
+	cat $(DATA)/$(DATA)_orig.txt | grep -v '#' | sort -nk 1 | uniq | tr -d '\r' | awk '$$1 != $$2' > $(DATA)/$(DATA).txt
 
 clean-bin:
 	rm -rf bin/*
