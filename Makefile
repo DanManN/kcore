@@ -57,7 +57,7 @@ union: all $(DATA)/$(DATA).offsets $(DATA)/$(DATA)-t.offsets
 	mv $(DATA)/$(DATA).graph $(DATA)/$(DATA)-tt.graph
 	mv $(DATA)/$(DATA).offsets $(DATA)/$(DATA)-tt.offsets
 	mv $(DATA)/$(DATA).properties $(DATA)/$(DATA)-tt.properties
-	java -cp "lib/*" it.unimi.dsi.webgraph.Transform union $(DATA)/$(DATA)-tt $(DATA)/$(DATA)-t $(DATA)/$(DATA)
+	java -Xms$(RAM) -Xmx$(RAM) -cp "lib/*" it.unimi.dsi.webgraph.Transform union $(DATA)/$(DATA)-tt $(DATA)/$(DATA)-t $(DATA)/$(DATA)
 
 .PHONY: union
 
