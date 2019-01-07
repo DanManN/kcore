@@ -15,6 +15,26 @@ $(OUT):
 	@mkdir $@
 
 ifeq ($(CORE), ALL)
+kcoreCC: all
+	@echo -n "0: "
+	@java -cp "bin:lib/*" KCoreCC $(DATA)/$(DATA)
+	@for x in $$(ls -v $(DATA) | grep 'core.graph') ; do \
+		echo -n "$${x: -11:-10}: " ;\
+		java -cp "bin:lib/*" KCoreCC $(DATA)/$${x%??????} ;\
+	done
+else
+ifeq ($(CORE), 0)
+kcoreCC: all
+	@java -cp "bin:lib/*" KCoreCC $(DATA)/$(DATA)
+else
+kcoreCC: all
+	@java -cp "bin:lib/*" KCoreCC $(DATA)/$(DATA)-$(CORE)core
+endif
+endif
+
+.PHONY: kcoreCC
+
+ifeq ($(CORE), ALL)
 kcoreStats: all
 	@echo -e "|V|\t|E|\tdmax\tkmax\tkavg"
 	@java -cp "bin:lib/*" KCoreStats $(DATA)/$(DATA) | grep -v $(DATA) | grep -v kmax
