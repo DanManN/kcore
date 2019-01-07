@@ -17,6 +17,7 @@ Makefile Parameters:
 
 Makefile Commands:
 
+- kcoreCC: print the connected components for DATA of layer CORE
 - kcoreStats: run the kcoreBZ algorithm on core layer CORE of data set DATA and get its basic stats
 - kdecompBZ: run the core decomposition on DATA using the kcoreBZ implementation
 - kdecompM: run the core decomposition on DATA using the kcoreM implementation
