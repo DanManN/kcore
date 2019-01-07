@@ -16,19 +16,18 @@ $(OUT):
 
 ifeq ($(CORE), ALL)
 kcoreCC: all
-	@echo -n "0: "
-	@java -cp "bin:lib/*" KCoreCC $(DATA)/$(DATA)
-	@for x in $$(ls -v $(DATA) | grep 'core.graph') ; do \
-		echo -n "$${x: -11:-10}: " ;\
-		java -cp "bin:lib/*" KCoreCC $(DATA)/$${x%??????} ;\
-	done
+	@java -cp "bin:lib/*" KCoreCC $(DATA)/$(DATA) $$( \
+		for x in $$(ls -v $(DATA) | grep 'core.graph') ; do \
+			echo -n "$${x: -11:-10} " ;\
+		done \
+	)
 else
 ifeq ($(CORE), 0)
 kcoreCC: all
 	@java -cp "bin:lib/*" KCoreCC $(DATA)/$(DATA)
 else
 kcoreCC: all
-	@java -cp "bin:lib/*" KCoreCC $(DATA)/$(DATA)-$(CORE)core
+	@java -cp "bin:lib/*" KCoreCC $(DATA)/$(DATA) $(CORE)
 endif
 endif
 

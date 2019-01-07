@@ -13,13 +13,6 @@
  * @author Alex Thomo, thomo@uvic.ca, 2015
  */
 
-// import java.io.File;
-// import java.io.PrintStream;
-
-import java.io.PrintStream;
-import java.util.concurrent.TimeUnit;
-import java.io.File;
-
 // import org.slf4j.Logger;
 // import org.slf4j.LoggerFactory;
 
@@ -32,30 +25,38 @@ public class KCoreCC {
 	// private static final Logger LOGGER = LoggerFactory.getLogger("it/unimi/dsi/webgraph/algo/ConnectedComponents");
 
 	public static void main(String[] args) throws Exception {
-		if(args.length > 2 || args.length < 1) {
-			System.err.println("Usage: java KCoreCC basename [savefile_name]");
+		if(args.length < 1) {
+			System.err.println("Usage: java KCoreCC basename [cores]");
 			System.exit(1);
 		}
 
 		String basename = args[0];
-		String filename = null;
-		if (args.length == 2)
-			filename = args[1];
-
-		// System.out.println("Starting ConnectedComponents: " + basename);
 		ImmutableGraph G = ImmutableGraph.load(basename);
-		// ProgressLogger pl = new ProgressLogger(LOGGER, 10000, TimeUnit.MILLISECONDS);
 		ConnectedComponents cc = ConnectedComponents.compute(G,0,null);
-		// cc.sortBySize(cc.component);
-
-		PrintStream ps = System.out;
-		if (filename != null)
-			ps = new PrintStream(new File(filename));
-
-		int i;
-		for (i = 0; i < cc.component.length-1; i++)
-			ps.print(cc.component[i]+",");
-		ps.println(cc.component[i]);
-		// System.out.println();
+		System.out.print("G0: ");
+		for (int i = 0; i < cc.component.length; i++) {
+			System.out.print(cc.component[i]+" ");
+		}
+		System.out.println();
+		if (args.length > 1) {
+			ConnectedComponents ccC;
+			ImmutableGraph C;
+			int[] sizes;
+			for (int i = 1; i < args.length; i++) {
+				C = ImmutableGraph.load(basename+"-"+args[i]+"core");
+				ccC = ConnectedComponents.compute(C,0,null);
+				sizes = ccC.computeSizes();
+				System.out.print("C"+i+": ");
+				for (int j = 0; j < ccC.component.length; j++) {
+					if (sizes[ccC.component[j]] != 1)
+						System.out.print(ccC.component[j]+","+cc.component[j]+" ");
+				}
+				System.out.println();
+				// for (int j = 0;j < sizes.length; j++) {
+				// 	System.out.print(sizes[j]+" ");
+				// }
+				// System.out.println();
+			}
+		}
 	}
 }
