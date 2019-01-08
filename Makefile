@@ -53,6 +53,11 @@ endif
 
 .PHONY: kcoreStats
 
+kdecompCC: all $(DATA)/$(DATA).offsets
+	java -Xms$(RAM) -Xmx$(RAM) -cp "bin:lib/*" KCoreDecompCC $(DATA)/$(DATA) $(DATA)/edgedecomp/$(DATA) $(TYPE)
+
+.PHONY: kdecompCC
+
 kdecompBZ: all $(DATA)/$(DATA).offsets
 	java -Xms$(RAM) -Xmx$(RAM) -cp "bin:lib/*" KCoreDecompBZ $(DATA)/$(DATA) $(DATA)/edgedecomp/$(DATA) $(TYPE)
 

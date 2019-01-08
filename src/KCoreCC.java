@@ -17,9 +17,12 @@ import java.io.PrintStream;
 
 import org.apache.commons.io.IOUtils;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
 
 import it.unimi.dsi.fastutil.io.BinIO;
 import it.unimi.dsi.util.Properties;
@@ -56,13 +59,13 @@ public class KCoreCC {
 				for (int i = 0; i < arr.length-1; i++) {
 					gcccomponents[i] = Integer.parseInt(arr[i+1]);
 				}
-			} catch (Exception e) {
+			} catch (IOException e) {
 				//nothing
 			}
 		} else {
 			try {
 				BinIO.loadInts(savename+".cc", gcccomponents);
-			} catch (Exception e) {
+			} catch (IOException e) {
 				//nothing
 			}
 		}
@@ -84,6 +87,8 @@ public class KCoreCC {
 			}
 		}
 
+		// System.out.println(gcccomponents[nodes]);
+
 
 		if (args.length > 4) {
 			String baselayers = args[3];
@@ -96,9 +101,10 @@ public class KCoreCC {
 					for (int i = 0; i < arr.length; i++) {
 						if (arr[i].contains("cc-layer")) {
 							gcccomponents[nodes] += Integer.parseInt(arr[i].split(" ")[1]);
+							// System.out.println(gcccomponents[nodes]);
 						}
 					}
-				} catch (Exception e) {
+				} catch (IOException e) {
 					//nothing
 				}
 				PrintStream ps = new PrintStream(new FileOutputStream(new File(savename+".cc-layers.txt"), true));
@@ -116,18 +122,49 @@ public class KCoreCC {
 				}
 				ps.close();
 			} else {
+				try(DataInputStream inputStream = new DataInputStream(new FileInputStream(savename+".cc-layers"))) {
+					int count;
+					while (inputStream.available()>12) {
+						// System.out.println(inputStream.available());
+						inputStream.skipBytes(4);
+						gcccomponents[nodes] += inputStream.readInt();
+						// System.out.println(gcccomponents[nodes]);
+						count = inputStream.readInt();
+						inputStream.skipBytes(count*12);
+					}
+				} catch (IOException e) {
+					//nothing
+				}
+				DataOutputStream os = new DataOutputStream(new FileOutputStream(new File(savename+".cc-layers"), true));
 				for (int i = 4; i < args.length; i++) {
 					C = ImmutableGraph.load(baselayers+".layer"+args[i]);
 					ccC = ConnectedComponents.compute(C,0,null);
 					sizes = ccC.computeSizes();
-					System.out.println("cc-layer"+args[i]+": "+ccC.numberOfComponents);
+					int count = ccC.component.length;
+					for (int j = 0; j < sizes.length; j++) {
+						if (sizes[j] == 1) {
+							count--;
+						}
+					}
+					os.writeInt(-Integer.parseInt(args[i]));
+					os.writeInt(ccC.numberOfComponents);
+					os.writeInt(count);
+					// System.out.print(-Integer.parseInt(args[i])+" ");
+					// System.out.print(ccC.numberOfComponents+" ");
+					// System.out.print(count+"\n");
 					for (int j = 0; j < ccC.component.length; j++) {
 						if (sizes[ccC.component[j]] != 1) {
-							System.out.println(j+","+(ccC.component[j]+gcccomponents[nodes])+","+gcccomponents[j]);
+							os.writeInt(j);
+							os.writeInt(ccC.component[j]+gcccomponents[nodes]);
+							os.writeInt(gcccomponents[j]);
+							// System.out.print(j+" ");
+							// System.out.print(ccC.component[j]+gcccomponents[nodes]+" ");
+							// System.out.print(gcccomponents[j]+"\n");
 						}
 					}
 					gcccomponents[nodes] += ccC.numberOfComponents;
 				}
+				os.close();
 			}
 		}
 	}
