@@ -138,7 +138,7 @@ public class KCoreDecompBZ {
 	
 	final int BUF_SIZE = 1024*1024*512;
 
-	public long[] kcoredecomp(Boolean debug, String type) throws Exception {
+	public long[] kcoredecomp(Boolean debug, String type, String savename) throws Exception {
 		int kmax;
 		long temptime;
 		long iotime;
@@ -199,10 +199,10 @@ public class KCoreDecompBZ {
 
 			ArcListASCIIGraph kcore = ArcListASCIIGraph.loadOnce(cedges);
 			wedges.close();
-			if (type.equals("edgelist"))
-				ImmutableGraph.store(ArcListASCIIGraph.class, kcore, G.basename()+"-"+kmax+"core.txt");
+			if (type.equals("ascii"))
+				ImmutableGraph.store(ArcListASCIIGraph.class, kcore, savename+".layer"+kmax+".txt");
 			else
-				ImmutableGraph.store(BVGraph.class, kcore, G.basename()+"-"+kmax+"core");
+				ImmutableGraph.store(BVGraph.class, kcore, savename+".layer"+kmax);
 			// ImmutableSubgraph kcore = new ImmutableSubgraph(G,core);
 			// kcore.save(G.basename()+"-"+kmax+"core");
 			cedges.close();
@@ -220,20 +220,19 @@ public class KCoreDecompBZ {
 
 		//args = new String[] {"simplegraph"};
 
-		if (args.length > 2 || args.length < 1) {
-			System.err.println("Usage: java KCoreDecomp basename [type]");
+		if (args.length != 3) {
+			System.err.println("Usage: java KCoreDecomp basename savename format");
 			System.exit(1);
 		}
 
 		String basename = args[0];
-		String gtype = "bvgraph";
-		if (args.length == 2)
-			gtype = args[1];
+		String savename = args[1];
+		String gtype = args[2];
 
 		System.out.println("Starting " + basename);
 		KCoreDecompBZ kc = new KCoreDecompBZ(basename);
 
-		long[] times = kc.kcoredecomp(false,gtype);
+		long[] times = kc.kcoredecomp(false,gtype,savename);
 
 		//storing the core value for each node in a file.
 		// PrintStream ps = new PrintStream(new File(basename+".cores"));

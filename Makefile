@@ -1,5 +1,5 @@
 DATA := simplegraph
-TYPE := bvgraph
+TYPE := bin
 CORE := 0
 RAM  := 4G
 SRC  := $(wildcard src/*.java)
@@ -16,18 +16,19 @@ $(OUT):
 
 ifeq ($(CORE), ALL)
 kcoreCC: all
-	@java -cp "bin:lib/*" KCoreCC $(DATA)/$(DATA) $$( \
-		for x in $$(ls -v $(DATA) | grep 'core.graph') ; do \
-			echo -n "$${x: -11:-10} " ;\
+	@java -cp "bin:lib/*" KCoreCC $(DATA)/$(DATA) $(DATA)/metainfo/$(DATA) $(TYPE) $(DATA)/edgedecomp/$(DATA) $$( \
+		for x in $$(ls -v $(DATA)/edgedecomp | grep 'layer.*graph') ; do \
+			NAME=$(DATA) ;\
+			echo -n "$${x:$${#NAME}+6:-6} " ;\
 		done \
 	)
 else
 ifeq ($(CORE), 0)
 kcoreCC: all
-	@java -cp "bin:lib/*" KCoreCC $(DATA)/$(DATA)
+	@java -cp "bin:lib/*" KCoreCC $(DATA)/$(DATA) $(DATA)/metainfo/$(DATA) $(TYPE)
 else
 kcoreCC: all
-	@java -cp "bin:lib/*" KCoreCC $(DATA)/$(DATA) $(CORE)
+	@java -cp "bin:lib/*" KCoreCC $(DATA)/$(DATA) $(DATA)/metainfo/$(DATA) $(TYPE) $(DATA)/edgedecomp/$(DATA) $(CORE)
 endif
 endif
 
@@ -37,8 +38,8 @@ ifeq ($(CORE), ALL)
 kcoreStats: all
 	@echo -e "|V|\t|E|\tdmax\tkmax\tkavg"
 	@java -cp "bin:lib/*" KCoreStats $(DATA)/$(DATA) | grep -v $(DATA) | grep -v kmax
-	@for x in $$(ls -v $(DATA) | grep 'core.graph') ; do \
-		java -cp "bin:lib/*" KCoreStats $(DATA)/$${x%??????} | grep -v $(DATA) | grep -v kmax ;\
+	@for x in $$(ls -v $(DATA)/edgedecomp | grep 'layer.*graph') ; do \
+		java -cp "bin:lib/*" KCoreStats $(DATA)/edgedecomp/$${x%??????} | grep -v $(DATA) | grep -v kmax ;\
 	done
 else
 ifeq ($(CORE), 0)
@@ -46,19 +47,19 @@ kcoreStats: all
 	@java -cp "bin:lib/*" KCoreStats $(DATA)/$(DATA)
 else
 kcoreStats: all
-	@java -cp "bin:lib/*" KCoreStats $(DATA)/$(DATA)-$(CORE)core
+	@java -cp "bin:lib/*" KCoreStats $(DATA)/edgedecomp/$(DATA).layer$(CORE)
 endif
 endif
 
 .PHONY: kcoreStats
 
 kdecompBZ: all $(DATA)/$(DATA).offsets
-	java -Xms$(RAM) -Xmx$(RAM) -cp "bin:lib/*" KCoreDecompBZ $(DATA)/$(DATA) $(TYPE)
+	java -Xms$(RAM) -Xmx$(RAM) -cp "bin:lib/*" KCoreDecompBZ $(DATA)/$(DATA) $(DATA)/edgedecomp/$(DATA) $(TYPE)
 
 .PHONY: kdecompBZ
 
 kdecompM: all $(DATA)/$(DATA).offsets
-	java -Xms$(RAM) -Xmx$(RAM) -cp "bin:lib/*" KCoreDecompM $(DATA)/$(DATA) $(TYPE)
+	java -Xms$(RAM) -Xmx$(RAM) -cp "bin:lib/*" KCoreDecompM $(DATA)/$(DATA) $(DATA)/edgedecomp/$(DATA) $(TYPE)
 
 .PHONY: kdecompM
 
@@ -110,7 +111,15 @@ $(DATA)/$(DATA).txt:
 
 clean-bin:
 	rm -rf bin/*
-clean-graphs:
-	rm -rf $(DATA)/*.obl $(DATA)/*.cores $(DATA)/*core.*
 
-.PHONY: clean
+.PHONY: clean-bin
+
+clean-graphs:
+	rm -rf $(DATA)/*.obl $(DATA)/edgedecomp/*
+
+.PHONY: clean-graphs
+
+clean-meta:
+	rm -rf $(DATA)/metainfo/* $(DATA)/*.cores
+
+.PHONY: clean-meta
