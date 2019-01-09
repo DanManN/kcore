@@ -17,14 +17,17 @@ import java.io.BufferedWriter;
 import java.io.OutputStreamWriter;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
+import java.util.Arrays;
 import java.util.HashMap;
 
+import it.unimi.dsi.fastutil.io.BinIO;
 import it.unimi.dsi.webgraph.ArcListASCIIGraph;
 import it.unimi.dsi.webgraph.BVGraph;
 import it.unimi.dsi.webgraph.ImmutableGraph;
+import it.unimi.dsi.webgraph.ImmutableSubgraph;
 
-public class KCoreDecompBZ {
-	ImmutableGraph G;
+public class KCoreDecompCC {
+	ImmutableSubgraph G;
 	boolean printprogress = false;
 	long E=0;
 	int n;
@@ -33,13 +36,37 @@ public class KCoreDecompBZ {
 	HashMap<String, Integer> blackedges;
 	int[] decdeg;
 
+	ImmutableGraph g;
+	int[] snodes;
 	// int[] vert;
 	// int[] pos;
 	// int[] deg;
 	// int[] bin;
 
-	public KCoreDecompBZ(String basename) throws Exception {
-		G = ImmutableGraph.load(basename);
+	public KCoreDecompCC(String basename, boolean domax) throws Exception {
+		g = ImmutableGraph.load(basename);
+		int [] components = BinIO.loadInts(basename+".cc");
+		int[] sizes = BinIO.loadInts(basename+".ccsizes");
+		int maxsize = 0;
+		for (int size : sizes) {
+			if (size > maxsize)
+				maxsize = size;
+		}
+		if (domax)
+			snodes = new int[g.numNodes()];
+		else
+			snodes = new int[g.numNodes()-maxsize];
+		int j = 0;
+		for (int i = 0; i < g.numNodes(); i++){
+			if ((sizes[components[i]] == maxsize && domax) || (sizes[components[i]] != maxsize && !domax)) {
+				snodes[j] = i;
+				j++;
+			}
+		}
+
+		Arrays.sort(snodes);
+		G = new ImmutableSubgraph(g, snodes);
+
 
 		n = G.numNodes();
 
@@ -187,7 +214,7 @@ public class KCoreDecompBZ {
 							// System.out.println(v+"\t"+u+"\t"+kmax);
 							found++;
 						}
-					}
+					}	
 					if (found > 0) {
 						numverts++;
 						if (found > dmax)
@@ -230,17 +257,18 @@ public class KCoreDecompBZ {
 
 		//args = new String[] {"simplegraph"};
 
-		if (args.length != 3) {
-			System.err.println("Usage: java KCoreDecomp basename savename format");
+		if (args.length != 4) {
+			System.err.println("Usage: java KCoreDecomp basename savename format maxormin");
 			System.exit(1);
 		}
 
 		String basename = args[0];
 		String savename = args[1];
 		String gtype = args[2];
+		String maxormin = args[3];
 
 		System.out.println("Starting " + basename);
-		KCoreDecompBZ kc = new KCoreDecompBZ(basename);
+		KCoreDecompCC kc = new KCoreDecompCC(basename,maxormin.equals("max"));
 
 		System.out.println("Layer\t|V|\t|E|\tdavg\tdmax\tcptime\tiotime");
 		long[] times = kc.kcoredecomp(false,gtype,savename);

@@ -34,14 +34,13 @@ public class KCoreCC {
 	// private static final Logger LOGGER = LoggerFactory.getLogger("it/unimi/dsi/webgraph/algo/ConnectedComponents");
 
 	public static void main(String[] args) throws Exception {
-		if(args.length < 3) {
-			System.err.println("Usage: java KCoreCC basename savename format [layerbase layers...]");
+		if(args.length < 2) {
+			System.err.println("Usage: java KCoreCC basename format [layerbase layers...]");
 			System.exit(1);
 		}
 
 		String basename = args[0];
-		String savename = args[1];
-		String format = args[2];
+		String format = args[1];
 
 
 		FileInputStream propFile = new FileInputStream(basename+".properties");
@@ -53,7 +52,7 @@ public class KCoreCC {
 		int[] gcccomponents = new int[nodes+1];
 
 		if (format.equals("ascii")) {
-			try(FileInputStream inputStream = new FileInputStream(savename+".cc.txt")) {
+			try(FileInputStream inputStream = new FileInputStream(basename+".cc.txt")) {
 				String[] arr = IOUtils.toString(inputStream).split("\n");
 				gcccomponents[nodes] = Integer.parseInt(arr[0]);
 				for (int i = 0; i < arr.length-1; i++) {
@@ -64,7 +63,7 @@ public class KCoreCC {
 			}
 		} else {
 			try {
-				BinIO.loadInts(savename+".cc", gcccomponents);
+				BinIO.loadInts(basename+".cc", gcccomponents);
 			} catch (IOException e) {
 				//nothing
 			}
@@ -76,27 +75,28 @@ public class KCoreCC {
 			System.arraycopy(cc.component, 0, gcccomponents, 0, cc.component.length);
 			gcccomponents[nodes] = cc.numberOfComponents;
 			if (format.equals("ascii")) {
-				PrintStream ps = new PrintStream(new File(savename+".cc.txt"));
+				PrintStream ps = new PrintStream(new File(basename+".cc.txt"));
 				ps.println(gcccomponents[nodes]);
 				for (int i = 0; i < gcccomponents.length-1; i++) {
 					ps.println(gcccomponents[i]);
 				}
 				ps.close();
 			} else {
-				BinIO.storeInts(gcccomponents, savename+".cc");
+				BinIO.storeInts(gcccomponents, basename+".cc");
+				BinIO.storeInts(cc.computeSizes(), basename+".ccsizes");
 			}
 		}
 
 		// System.out.println(gcccomponents[nodes]);
 
 
-		if (args.length > 4) {
-			String baselayers = args[3];
+		if (args.length > 3) {
+			String baselayers = args[2];
 			ConnectedComponents ccC;
 			ImmutableGraph C;
 			int[] sizes;
 			if (format.equals("ascii")) {
-				try(FileInputStream inputStream = new FileInputStream(savename+".cc-layers.txt")) {
+				try(FileInputStream inputStream = new FileInputStream(basename+".cc-layers.txt")) {
 					String[] arr = IOUtils.toString(inputStream).split("\n");
 					for (int i = 0; i < arr.length; i++) {
 						if (arr[i].contains("cc-layer")) {
@@ -107,8 +107,8 @@ public class KCoreCC {
 				} catch (IOException e) {
 					//nothing
 				}
-				PrintStream ps = new PrintStream(new FileOutputStream(new File(savename+".cc-layers.txt"), true));
-				for (int i = 4; i < args.length; i++) {
+				PrintStream ps = new PrintStream(new FileOutputStream(new File(basename+".cc-layers.txt"), true));
+				for (int i = 3; i < args.length; i++) {
 					C = ImmutableGraph.load(baselayers+".layer"+args[i]);
 					ccC = ConnectedComponents.compute(C,0,null);
 					sizes = ccC.computeSizes();
@@ -122,7 +122,7 @@ public class KCoreCC {
 				}
 				ps.close();
 			} else {
-				try(DataInputStream inputStream = new DataInputStream(new FileInputStream(savename+".cc-layers"))) {
+				try(DataInputStream inputStream = new DataInputStream(new FileInputStream(basename+".cc-layers"))) {
 					int count;
 					while (inputStream.available()>12) {
 						// System.out.println(inputStream.available());
@@ -135,8 +135,8 @@ public class KCoreCC {
 				} catch (IOException e) {
 					//nothing
 				}
-				DataOutputStream os = new DataOutputStream(new FileOutputStream(new File(savename+".cc-layers"), true));
-				for (int i = 4; i < args.length; i++) {
+				DataOutputStream os = new DataOutputStream(new FileOutputStream(new File(basename+".cc-layers"), true));
+				for (int i = 3; i < args.length; i++) {
 					C = ImmutableGraph.load(baselayers+".layer"+args[i]);
 					ccC = ConnectedComponents.compute(C,0,null);
 					sizes = ccC.computeSizes();

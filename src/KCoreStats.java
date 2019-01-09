@@ -127,7 +127,7 @@ public class KCoreStats {
 		int[] res = kc.KCoreCompute();
 		int kmax = -1;
 		double sum = 0;
-		int cnt = 0;
+		double cnt = 0;
 		for(int i=0; i<res.length; i++) {
 			// ps.println(i+":" + res[i] + " ");
 			if(res[i] > kmax)
@@ -135,8 +135,8 @@ public class KCoreStats {
 			sum += res[i];
 			if(res[i] > 0) cnt++;
 		}
-		System.out.println("|V|\t|E|\tdmax\tkmax\tkavg");
-		System.out.println(cnt + "\t" + (kc.E/2) + "\t" + kc.md + "\t" + kmax + "\t" + (sum/cnt) );
+		System.out.println("|V|\t|E|\tdmax\tdavg\tkmax\tkavg");
+		System.out.printf("%.0f\t%d\t%d\t%.3f\t%d\t%.3f\n",cnt,(kc.E/2),kc.md,(kc.E/cnt),kmax,(sum/cnt));
 
 		System.out.println(args[0] + ": Time elapsed (sec) = " + (System.currentTimeMillis() - startTime)/1000.0);
 	}

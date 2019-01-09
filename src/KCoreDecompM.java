@@ -173,6 +173,9 @@ public class KCoreDecompM {
 			}
 			// IntSet ccore = new IntArraySet(n/kmax);
 			int numedges = 0;
+			int numverts = 0;
+			int dmax = 0;
+			int found = 0;
 			while (numedges == 0) {
 				for (int v=0; v<res.length; v++) {
 					int[] ngbs = G.successorArray(v);
@@ -191,15 +194,21 @@ public class KCoreDecompM {
 							decdeg[v] += 1;
 							// System.out.println(v+"\t"+u+"\t"+kmax);
 							scheduled[v] = true;
+							found++;
 						}
 					}
-					for (int i=0; i<v_d; i++) {
-						int u = ngbs[i];
-						if (blackedges.containsKey(v+","+u)) {
-							continue;
-						}
-						if (scheduled[v])
+					if (found > 0) {
+						numverts++;
+						for (int i=0; i<v_d; i++) {
+							int u = ngbs[i];
+							if (blackedges.containsKey(v+","+u)) {
+								continue;
+							}
 							scheduled[u] = true;
+						}
+						if (found > dmax)
+							dmax = found;
+						found = 0;
 					}
 				}
 				if (numedges == 0) {
@@ -229,7 +238,7 @@ public class KCoreDecompM {
 			iotime += System.currentTimeMillis() - temptime;
 			io_d_time[1] += iotime;
 
-			System.out.println("Computed " + kmax + " core in " + (iteration-previter) + " iterations (" + decomptime/1000.0 + " sec) and stored in " + iotime/1000.0 + " sec.");
+			System.out.printf("%d\t%d\t%d\t%.3f\t%d\t%d\t%.3f\t%.3f\n",kmax,numverts,(numedges/2),(2.0*numedges/numverts),dmax,(iteration-previter),(decomptime/1000.0),(iotime/1000.0));
 		} while (kmax > 1);
 		return io_d_time;
 	}
@@ -252,6 +261,7 @@ public class KCoreDecompM {
 		System.out.println("Starting " + basename);
 		KCoreDecompM kc = new KCoreDecompM(basename);
 
+		System.out.println("Layer\t|V|\t|E|\tdavg\tdmax\titer\tcptime\tiotime");
 		long[] times = kc.kcoredecomp(false,gtype,savename);
 
 		//storing the core value for each node in a file.

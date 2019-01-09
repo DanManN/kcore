@@ -2,6 +2,7 @@ DATA := simplegraph
 TYPE := bin
 CORE := 0
 RAM  := 4G
+ARGS := min
 SRC  := $(wildcard src/*.java)
 OUT  := bin
 LIST := $(SRC:src/%.java=$(OUT)/%.class)
@@ -16,8 +17,8 @@ $(OUT):
 
 ifeq ($(CORE), ALL)
 kcoreCC: all
-	@java -cp "bin:lib/*" KCoreCC $(DATA)/$(DATA) $(DATA)/metainfo/$(DATA) $(TYPE) $(DATA)/edgedecomp/$(DATA) $$( \
-		for x in $$(ls -v $(DATA)/edgedecomp | grep 'layer.*graph') ; do \
+	@java -cp "bin:lib/*" KCoreCC $(DATA)/$(DATA) $(TYPE) $(DATA)/edgedecomp/$(DATA) $$( \
+		for x in $$(ls -v $(DATA)/edgedecomp | grep 'layer.*graph' | tac) ; do \
 			NAME=$(DATA) ;\
 			echo -n "$${x:$${#NAME}+6:-6} " ;\
 		done \
@@ -25,10 +26,10 @@ kcoreCC: all
 else
 ifeq ($(CORE), 0)
 kcoreCC: all
-	@java -cp "bin:lib/*" KCoreCC $(DATA)/$(DATA) $(DATA)/metainfo/$(DATA) $(TYPE)
+	java -cp "bin:lib/*" KCoreCC $(DATA)/$(DATA) $(TYPE)
 else
 kcoreCC: all
-	@java -cp "bin:lib/*" KCoreCC $(DATA)/$(DATA) $(DATA)/metainfo/$(DATA) $(TYPE) $(DATA)/edgedecomp/$(DATA) $(CORE)
+	java -cp "bin:lib/*" KCoreCC $(DATA)/$(DATA) $(TYPE) $(DATA)/edgedecomp/$(DATA) $(CORE)
 endif
 endif
 
@@ -36,7 +37,7 @@ endif
 
 ifeq ($(CORE), ALL)
 kcoreStats: all
-	@echo -e "|V|\t|E|\tdmax\tkmax\tkavg"
+	@echo -e "|V|\t|E|\tdmax\tdavg\tkmax\tkavg"
 	@java -cp "bin:lib/*" KCoreStats $(DATA)/$(DATA) | grep -v $(DATA) | grep -v kmax
 	@for x in $$(ls -v $(DATA)/edgedecomp | grep 'layer.*graph') ; do \
 		java -cp "bin:lib/*" KCoreStats $(DATA)/edgedecomp/$${x%??????} | grep -v $(DATA) | grep -v kmax ;\
@@ -53,8 +54,8 @@ endif
 
 .PHONY: kcoreStats
 
-kdecompCC: all $(DATA)/$(DATA).offsets
-	java -Xms$(RAM) -Xmx$(RAM) -cp "bin:lib/*" KCoreDecompCC $(DATA)/$(DATA) $(DATA)/edgedecomp/$(DATA) $(TYPE)
+kdecompCC: all $(DATA)/$(DATA).cc
+	java -Xms$(RAM) -Xmx$(RAM) -cp "bin:lib/*" KCoreDecompCC $(DATA)/$(DATA) $(DATA)/edgedecomp/$(DATA) $(TYPE) $(ARGS)
 
 .PHONY: kdecompCC
 
@@ -114,6 +115,9 @@ $(DATA)/$(DATA).txt:
 	mv $(DATA)/$$(7z l $(DATA)/$(DATA).txt.gz | tail -n 3 | head -n 1 | tr -s ' ' | cut -d ' ' -f6) $(DATA)/$(DATA)_orig.txt
 	cat $(DATA)/$(DATA)_orig.txt | grep -v '#' | sort -nk 1 | uniq | tr -d '\r' | awk '$$1 != $$2' > $(DATA)/$(DATA).txt
 
+$(DATA)/$(DATA).cc: $(DATA)/$(DATA).offsets
+	java -cp "bin:lib/*" KCoreCC $(DATA)/$(DATA) bin
+
 clean-bin:
 	rm -rf bin/*
 
@@ -125,6 +129,6 @@ clean-graphs:
 .PHONY: clean-graphs
 
 clean-meta:
-	rm -rf $(DATA)/metainfo/* $(DATA)/*.cores
+	rm -rf $(DATA)/*.cc* $(DATA)/*.cores
 
 .PHONY: clean-meta
