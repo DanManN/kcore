@@ -15,6 +15,16 @@ $(OUT)/%.class: src/%.java | $(OUT)
 $(OUT):
 	@mkdir $@
 
+ifeq ($(CORE), 0)
+degdist:
+	@./bindump.sh $(DATA)/$(DATA).dd -w4 -v | nl -v 0 | grep -v ' 0'
+else
+degdist:
+	@./bindump.sh $(DATA)/edgedecomp/$(DATA).layer$(CORE).dd -w4 -v | nl -v 0 | grep -v ' 0'
+endif
+
+.PHONY: degdist
+
 ifeq ($(CORE), ALL)
 kcoreCC: all
 	@java -cp "bin:lib/*" KCoreCC $(DATA)/$(DATA) $(TYPE) $(DATA)/edgedecomp/$(DATA) $$( \
@@ -79,7 +89,7 @@ kcoreM: all $(DATA)/$(DATA).offsets
 
 .PHONY: kcoreM
 
-union: all $(DATA)/$(DATA).offsets $(DATA)/$(DATA)-t.offsets
+union: $(DATA)/$(DATA).offsets $(DATA)/$(DATA)-t.offsets
 	mv $(DATA)/$(DATA).graph $(DATA)/$(DATA)-tt.graph
 	mv $(DATA)/$(DATA).offsets $(DATA)/$(DATA)-tt.offsets
 	mv $(DATA)/$(DATA).properties $(DATA)/$(DATA)-tt.properties
