@@ -16,6 +16,7 @@
 // import java.io.File;
 // import java.io.PrintStream;
 
+import it.unimi.dsi.fastutil.io.BinIO;
 import it.unimi.dsi.webgraph.ImmutableGraph;
 
 public class KCoreStats {
@@ -135,6 +136,12 @@ public class KCoreStats {
 			sum += res[i];
 			if(res[i] > 0) cnt++;
 		}
+		int[] degdist = new int[kc.md+1]; //md+1 because we can have zero degree
+		for(int v=0; v<kc.n; v++) {
+			degdist[kc.G.outdegree(v)]++;
+		}
+		BinIO.storeInts(degdist, basename+".dd");
+
 		System.out.println("|V|\t|E|\tdmax\tdavg\tkmax\tkavg");
 		System.out.printf("%.0f\t%d\t%d\t%.3f\t%d\t%.3f\n",cnt,(kc.E/2),kc.md,(kc.E/cnt),kmax,(sum/cnt));
 
