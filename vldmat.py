@@ -53,10 +53,10 @@ a = a[a[:,0].argsort(kind='stable')]
 #     cum+=r
 
 # ldmat = {}
-numLayers = -a.min(0)[0]
-numverts = a.max(0)[0]
-vldmat = sp.dok_matrix((numverts+1, numLayers+1), dtype=np.int32)
-for v,c,l in a[numLayers:]:
+maxLayer = -a[0][0]
+numverts = a[-1][0]
+vldmat = sp.dok_matrix((numverts+1, maxLayer+1), dtype=np.int32)
+for v,c,l in a[len(layers):]:
     # for l,r in ranges.items():
     #     if c < r:
     #         ldmat[v] = ldmat.get(v, [])+[(v,-l)]
