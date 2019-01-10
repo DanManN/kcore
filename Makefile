@@ -15,6 +15,16 @@ $(OUT)/%.class: src/%.java | $(OUT)
 $(OUT):
 	@mkdir $@
 
+vdvec:
+	@echo -n "$(ARGS) " ;\
+	for x in $$(ls -v $(DATA)/edgedecomp | grep 'layer.*nd'); do \
+			NAME=$(DATA) ;\
+			DEG=$$(($$(./bindump.sh $(DATA)/edgedecomp/$$x -N4 -j $$[4*$(ARGS)] 2> /dev/null))) ;\
+			if (( $$DEG != 0 )) ; then \
+				printf "%s,%s " "$${x:$${#NAME}+6:-3}" "$$DEG" ;\
+			fi ;\
+	done
+
 ifeq ($(CORE), 0)
 degdist:
 	@./bindump.sh $(DATA)/$(DATA).dd -w4 -v | nl -v 0 | grep -v ' 0'

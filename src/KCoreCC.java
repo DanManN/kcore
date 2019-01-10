@@ -49,14 +49,14 @@ public class KCoreCC {
 		propFile.close();
 
 		int nodes = Integer.parseInt(prop.getProperty("nodes").toString());
-		int[] gcccomponents = new int[nodes+1];
+		int[] gcccomponents = new int[nodes];
+		gcccomponents[0] = -1;
 
 		if (format.equals("ascii")) {
 			try(FileInputStream inputStream = new FileInputStream(basename+".cc.txt")) {
 				String[] arr = IOUtils.toString(inputStream).split("\n");
-				gcccomponents[nodes] = Integer.parseInt(arr[0]);
-				for (int i = 0; i < arr.length-1; i++) {
-					gcccomponents[i] = Integer.parseInt(arr[i+1]);
+				for (int i = 0; i < arr.length; i++) {
+					gcccomponents[i] = Integer.parseInt(arr[i]);
 				}
 			} catch (IOException e) {
 				//nothing
@@ -69,15 +69,13 @@ public class KCoreCC {
 			}
 		}
 
-		if (gcccomponents[nodes] == 0) {
+		if (gcccomponents[0] == -1) {
 			ImmutableGraph G = ImmutableGraph.load(basename);
 			ConnectedComponents cc = ConnectedComponents.compute(G,0,null);
 			System.arraycopy(cc.component, 0, gcccomponents, 0, cc.component.length);
-			gcccomponents[nodes] = cc.numberOfComponents;
 			if (format.equals("ascii")) {
 				PrintStream ps = new PrintStream(new File(basename+".cc.txt"));
-				ps.println(gcccomponents[nodes]);
-				for (int i = 0; i < gcccomponents.length-1; i++) {
+				for (int i = 0; i < gcccomponents.length; i++) {
 					ps.println(gcccomponents[i]);
 				}
 				ps.close();
@@ -89,19 +87,18 @@ public class KCoreCC {
 
 		// System.out.println(gcccomponents[nodes]);
 
-
 		if (args.length > 3) {
 			String baselayers = args[2];
 			ConnectedComponents ccC;
 			ImmutableGraph C;
 			int[] sizes;
+			int offset = 0;
 			if (format.equals("ascii")) {
 				try(FileInputStream inputStream = new FileInputStream(basename+".cc-layers.txt")) {
 					String[] arr = IOUtils.toString(inputStream).split("\n");
 					for (int i = 0; i < arr.length; i++) {
 						if (arr[i].contains("cc-layer")) {
-							gcccomponents[nodes] += Integer.parseInt(arr[i].split(" ")[1]);
-							// System.out.println(gcccomponents[nodes]);
+							offset += Integer.parseInt(arr[i].split(" ")[1]);
 						}
 					}
 				} catch (IOException e) {
@@ -115,10 +112,10 @@ public class KCoreCC {
 					ps.println("cc-layer"+args[i]+": "+ccC.numberOfComponents);
 					for (int j = 0; j < ccC.component.length; j++) {
 						if (sizes[ccC.component[j]] != 1) {
-							ps.println(j+","+(ccC.component[j]+gcccomponents[nodes])+","+gcccomponents[j]);
+							ps.println(j+","+(ccC.component[j]+offset)+","+gcccomponents[j]);
 						}
 					}
-					gcccomponents[nodes] += ccC.numberOfComponents;
+					offset += ccC.numberOfComponents;
 				}
 				ps.close();
 			} else {
@@ -127,8 +124,7 @@ public class KCoreCC {
 					while (inputStream.available()>12) {
 						// System.out.println(inputStream.available());
 						inputStream.skipBytes(4);
-						gcccomponents[nodes] += inputStream.readInt();
-						// System.out.println(gcccomponents[nodes]);
+						offset += inputStream.readInt();
 						count = inputStream.readInt();
 						inputStream.skipBytes(count*12);
 					}
@@ -149,20 +145,14 @@ public class KCoreCC {
 					os.writeInt(-Integer.parseInt(args[i]));
 					os.writeInt(ccC.numberOfComponents);
 					os.writeInt(count);
-					// System.out.print(-Integer.parseInt(args[i])+" ");
-					// System.out.print(ccC.numberOfComponents+" ");
-					// System.out.print(count+"\n");
 					for (int j = 0; j < ccC.component.length; j++) {
 						if (sizes[ccC.component[j]] != 1) {
 							os.writeInt(j);
-							os.writeInt(ccC.component[j]+gcccomponents[nodes]);
+							os.writeInt(ccC.component[j]+offset);
 							os.writeInt(gcccomponents[j]);
-							// System.out.print(j+" ");
-							// System.out.print(ccC.component[j]+gcccomponents[nodes]+" ");
-							// System.out.print(gcccomponents[j]+"\n");
 						}
 					}
-					gcccomponents[nodes] += ccC.numberOfComponents;
+					offset += ccC.numberOfComponents;
 				}
 				os.close();
 			}

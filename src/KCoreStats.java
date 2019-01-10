@@ -137,9 +137,12 @@ public class KCoreStats {
 			if(res[i] > 0) cnt++;
 		}
 		int[] degdist = new int[kc.md+1]; //md+1 because we can have zero degree
+		int[] vdegs = new int[kc.n];
 		for(int v=0; v<kc.n; v++) {
+			vdegs[v] = kc.G.outdegree(v);
 			degdist[kc.G.outdegree(v)]++;
 		}
+		BinIO.storeInts(vdegs, basename+".nd");
 		BinIO.storeInts(degdist, basename+".dd");
 
 		System.out.println("|V|\t|E|\tdmax\tdavg\tkmax\tkavg");
