@@ -25,12 +25,15 @@ vdvec:
 			fi ;\
 	done
 
+ccdist:
+	@./bindump.sh $(DATA)/$(DATA).ccsizes -w4 -v | nl -v 0 | grep -v ' 0$$' | grep -v ' 1$$'
+
 ifeq ($(CORE), 0)
 degdist:
-	@./bindump.sh $(DATA)/$(DATA).dd -w4 -v | nl -v 0 | grep -v ' 0'
+	@./bindump.sh $(DATA)/$(DATA).dd -w4 -v | nl -v 0 | grep -v ' 0$$'
 else
 degdist:
-	@./bindump.sh $(DATA)/edgedecomp/$(DATA).layer$(CORE).dd -w4 -v | nl -v 0 | grep -v ' 0'
+	@./bindump.sh $(DATA)/edgedecomp/$(DATA).layer$(CORE).dd -w4 -v | nl -v 0 | grep -v ' 0$$'
 endif
 
 .PHONY: degdist
