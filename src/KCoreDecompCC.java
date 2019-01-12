@@ -53,7 +53,7 @@ public class KCoreDecompCC {
 				maxsize = size;
 		}
 		if (domax)
-			snodes = new int[g.numNodes()];
+			snodes = new int[maxsize];
 		else
 			snodes = new int[g.numNodes()-maxsize];
 		int j = 0;
